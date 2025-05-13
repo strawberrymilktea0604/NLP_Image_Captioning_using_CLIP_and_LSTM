@@ -1,0 +1,39 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+
+Như vậy trong bài tập lớn này, chúng ta đã triển khai và đánh giá ba kiến trúc mạng nơ-ron phổ biến cho bài toán phân loại ảnh trên tập dữ liệu CIFAR-10: Convolutional Neural Network (CNN), Fully Convolutional Network (FCN), và Residual Network (ResNet). Các mô hình được huấn luyện và kiểm tra bằng thư viện PyTorch, với kết quả như sau:
+
+\begin{itemize}
+    \item \textbf{CNN}: Đạt độ chính xác khoảng 70-80\% trên tập test. Mô hình này thể hiện khả năng trích xuất đặc trưng không gian hiệu quả từ ảnh, nhưng vẫn có hiện tượng overfitting khi không sử dụng các kỹ thuật regularization.
+    \item \textbf{FCN}: Đạt độ chính xác khoảng 65-75\%. Mặc dù FCN được thiết kế chủ yếu cho bài toán semantic segmentation, việc áp dụng nó vào bài toán phân loại ảnh cho thấy tiềm năng trong việc giảm số lượng tham số và tránh overfitting.
+    \item \textbf{ResNet}: Đạt độ chính xác cao nhất, khoảng 85-90\%. Kiến trúc ResNet với các khối residual đã chứng minh khả năng huấn luyện mạng sâu hiệu quả và đạt được kết quả vượt trội trên tập dữ liệu CIFAR-10.
+\end{itemize}
+
+Qua quá trình thực hiện bài tập lớn, ta đã rút ra một số bài học quan trọng:
+
+\begin{itemize}
+    \item \textbf{Kiến trúc mạng đóng vai trò quyết định}: ResNet vượt trội hơn so với CNN và FCN nhờ khả năng học các đặc trưng phức tạp và giải quyết vấn đề vanishing gradient.
+    \item \textbf{Tầm quan trọng của tiền xử lý dữ liệu}: Data augmentation và chuẩn hóa dữ liệu giúp cải thiện đáng kể hiệu suất của mô hình.
+    \item \textbf{Regularization là cần thiết}: Các kỹ thuật như dropout và weight decay giúp giảm overfitting, đặc biệt với các mô hình có số lượng tham số lớn.
+    \item \textbf{PyTorch là công cụ mạnh mẽ}: PyTorch cung cấp sự linh hoạt và dễ dàng trong việc xây dựng, huấn luyện và đánh giá các mô hình học sâu.
+\end{itemize}
+
+Mặc dù đạt được kết quả khả quan, bài tập lớn vẫn còn một số hạn chế:
+
+\begin{itemize}
+    \item \textbf{Độ chính xác chưa tối ưu}: Có thể cải thiện bằng cách sử dụng các kiến trúc mạng tiên tiến hơn như EfficientNet hoặc Transformer.
+    \item \textbf{Tài nguyên tính toán}: Huấn luyện các mô hình sâu như ResNet yêu cầu GPU mạnh và thời gian dài.
+    \item \textbf{Khả năng tổng quát hóa}: Cần thử nghiệm trên các bộ dữ liệu khác để đánh giá khả năng tổng quát hóa của mô hình.
+\end{itemize}
+
+Chính những hạn chế đó, cá nhân người viết có đề bạt một số hướng phát triển trong tương lai:
+
+\begin{itemize}
+    \item Thử nghiệm với các kiến trúc mạng mới như Vision Transformer (ViT).
+    \item Áp dụng các kỹ thuật tăng cường dữ liệu phức tạp hơn như Mixup hoặc Cutout.
+    \item Tối ưu hóa siêu tham số (hyperparameter tuning) để cải thiện hiệu suất.
+\end{itemize}
+
+Bài tập lớn này đã giúp chúng ta hiểu rõ hơn về quy trình xây dựng, huấn luyện và đánh giá các mô hình học sâu cho bài toán phân loại ảnh. Kết quả cho thấy ResNet là kiến trúc mạng hiệu quả nhất trên tập dữ liệu CIFAR-10, trong khi CNN và FCN cũng thể hiện tiềm năng trong các tình huống cụ thể. Với sự phát triển không ngừng của học sâu và thị giác máy tính, chúng ta tin rằng các mô hình này sẽ tiếp tục được cải tiến và ứng dụng rộng rãi trong tương lai.
+
+\end{document}

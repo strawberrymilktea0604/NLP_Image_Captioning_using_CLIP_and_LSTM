@@ -1,0 +1,44 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+%=========================================TRUYỆN CHÍNH========================================
+\subsection*{1. Giới thiệu đề tài}
+\addcontentsline{toc}{subsection}{\uline{Giới thiệu đề tài}}
+
+Đề tài "Tạo chú thích hình ảnh tự động (Image Captioning)" tập trung vào việc kết hợp mô hình học sâu để phân tích hình ảnh và tạo mô tả ngôn ngữ tự nhiên phù hợp. Phương pháp này ứng dụng mô hình CLIP (Contrastive Language-Image Pretraining) của OpenAI để trích xuất đặc trưng hình ảnh hiệu quả, đồng thời sử dụng mạng LSTM (Long Short-Term Memory) để sinh chuỗi chữ mô tả nội dung hình ảnh dựa trên các đặc trưng đó.
+
+Trong dự án này, chúng ta sẽ khám phá cách mô hình CLIP mã hóa hình ảnh thành các embedding đa chiều, sau đó đưa vào mạng LSTM kết hợp với xử lý ngôn ngữ tự nhiên (NLP) thông qua thư viện NLTK để tối ưu hóa quá trình tạo chú thích. Mô hình sẽ học cách ánh xạ giữa đặc trưng hình ảnh và từ ngữ, đồng thời tạo ra câu mô tả chính xác và tự nhiên.
+
+Ứng dụng của Image Captioning rất đa dạng, từ hỗ trợ người khiếm thị, tự động gắn thẻ hình ảnh, đến nâng cao trải nghiệm tìm kiếm hình ảnh. Dự án này không chỉ cung cấp cái nhìn sâu sắc về cách kết hợp thị giác máy tính (Computer Vision) và xử lý ngôn ngữ tự nhiên (NLP), mà còn mở ra hướng phát triển các hệ thống AI đa phương thức (Multimodal AI) trong tương lai.
+
+\subsection*{2. Mục tiêu, đối tượng và phạm vi}
+\addcontentsline{toc}{subsection}{\uline{Mục tiêu, đối tượng và phạm vi}}
+
+\subsubsection*{Mục tiêu}
+\begin{itemize}
+    \item Xây dựng mô hình Image Captioning tự động, kết hợp CLIP (ViT-B/32) để trích xuất đặc trưng hình ảnh và LSTM với cơ chế Attention để sinh chú thích.
+    \item Tận dụng bộ dữ liệu Flickr8k (8,000 ảnh + chú thích) để huấn luyện và đánh giá mô hình.
+    \item Ứng dụng NLTK để tiền xử lý văn bản (tokenization, stopwords removal) và đánh giá độ chính xác của caption (BLEU).
+\end{itemize}
+
+\subsubsection*{Đối tượng}
+\begin{itemize}
+    \item Bộ dữ liệu: Flickr8k (ảnh + chú thích tiếng Anh).
+    \item Mô hình chính:
+    \begin{itemize}
+        \item Encoder: CLIP (ViT-B/32) → trích xuất đặc trưng hình ảnh (global hoặc patch tokens).
+        \item Decoder: LSTM + Attention Mechanism → sinh caption dựa trên features từ CLIP.
+    \end{itemize}
+    \item Công cụ: Python, PyTorch/TensorFlow, NLTK (xử lý ngôn ngữ).
+\end{itemize}
+
+\subsubsection*{Phạm vi}
+\begin{itemize}
+    \item Dữ liệu: Giới hạn ở Flickr8k (không mở rộng sang COCO hoặc Conceptual Captions).
+    \item Mô hình:
+    \begin{itemize}
+        \item Chỉ sử dụng CLIP ViT-B/32 (không so sánh với ResNet, Faster R-CNN).
+        \item Decoder dùng LSTM + Attention.
+    \end{itemize}
+    \item Đánh giá: Tập trung vào độ chính xác (BLEU) và khả năng mô tả tự nhiên (qualitative analysis).
+\end{itemize}
+\end{document}
