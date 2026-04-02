@@ -43,7 +43,7 @@ Token hóa (<SOS>, từ, <EOS>) → Embedding (256-d) → LSTM + Attention
 3. `train_epoch` & `validate`: Tính loss, cập nhật trọng số, giám sát bằng validation loss, tự động lưu `best_model.pth`.
 4. `generate_caption_beam_search` & `calculate_bleu_scores`: Sinh chuỗi, đánh giá chỉ số BLEU-1 đến BLEU-4 và visualization.
 
-![Sơ đồ kiến trúc Encoder-Decoder CLIP và LSTM tích hợp Attention](docs/ảnh/architecture_diagram.png)
+![Cơ chế Attention](docs/ảnh/attention.png)
 
 ---
 
@@ -63,8 +63,9 @@ Token hóa (<SOS>, từ, <EOS>) → Embedding (256-d) → LSTM + Attention
 - **Chỉ số BLEU-4 đạt `0.0201`**: Cho thấy mô hình baseline đã nắm bắt được cú pháp cơ bản và cấu trúc câu đơn giản. Tuy nhiên, khả năng liên kết ngữ nghĩa dài hạn giữa đối tượng trong ảnh và hành động/mối quan hệ vẫn còn hạn chế.
 - **Hiệu năng pipeline:** Cơ chế cache đặc trưng giúp quá trình huấn luyện nhanh, ổn định. Code được module hóa rõ ràng, dễ bảo trì và thử nghiệm các biến thể mô hình.
 
-![Biểu đồ Loss và Validation Score qua các Epoch](docs/ảnh/training_curves.png)
-![Ví dụ trực quan hóa kết quả sinh Caption so với Ground Truth](docs/ảnh/caption_samples.png)
+![Sự biến thiên của giá trị loss trên tập huấn luyện và validation qua các epoch](docs/ảnh/loss_plot.png)
+![Kết quả huấn luyện mô hình](docs/ảnh/result.png)
+![Kết quả tạo chú thích ảnh](docs/ảnh/result2.png)
 
 ### 🔹 Nhận xét
 Kết quả BLEU-4 thấp phản ánh đúng đặc điểm của baseline CLIP+LSTM khi backbone Vision bị đóng băng hoàn toàn. Dù vậy, kiến trúc này cung cấp nền tảng vững chắc, luồng dữ liệu mạch lạc và đầy đủ các thành phần cần thiết cho một hệ thống Image Captioning thực tiễn.
