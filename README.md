@@ -90,7 +90,7 @@ Mở file `clip_lstm_test.ipynb` bằng Jupyter Notebook / Jupyter Lab hoặc Go
 ### 🔹 Quá trình huấn luyện
 Mô hình được huấn luyện qua tối đa 15 epoch với cơ chế giám sát Validation Loss. Hệ thống kích hoạt **Early Stopping tại Epoch 11**, mô hình tốt nhất được ghi nhận tại **Epoch 9** với `Validation Loss = 3.1911`. Đường cong loss giảm đều, không xuất hiện hiện tượng overfitting nghiêm trọng.
 
-![Biểu đồ thể hiện xu hướng biến thiên của các chỉ số đánh giá mô hình, với chấm đỏ đánh dấu điểm dừng tối ưu trước khi xảy ra hiện tượng phân kỳ](docs/ảnh/3-1.png)
+![Sự biến thiên của giá trị loss trên tập huấn luyện và validation qua các epoch](docs/ảnh/loss_plot.png)
 
 ### 🔹 Đánh giá định lượng & định tính
 Chỉ số BLEU phản ánh độ khớp n-gram giữa caption sinh ra và nhãn tham chiếu:
