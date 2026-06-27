@@ -1,134 +1,228 @@
-# 🖼️ CLIP-LSTM Image Captioning
+# 🖼️ CLIP + LSTM Image Captioning
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white) ![OpenAI CLIP](https://img.shields.io/badge/OpenAI--CLIP-412991) ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?logo=jupyter&logoColor=white) ![License](https://img.shields.io/badge/License-Academic-green)
 
-Dự án nghiên cứu & thực nghiệm Deep Learning cho bài toán **Image Captioning** (sinh mô tả văn bản từ hình ảnh). Hệ thống kết hợp sức mạnh trích xuất đặc trưng đa phương thức của **CLIP (ViT-B/32)** với khả năng mô hình hóa chuỗi của **LSTM tích hợp Attention**, tạo thành pipeline End-to-End minh bạch, dễ tái tạo và phù hợp cho mục đích học thuật/nghiên cứu.
+Dự án nghiên cứu/đồ án môn **Xử lý ngôn ngữ tự nhiên** về bài toán **tạo chú thích ảnh tự động (Image Captioning)**.  
+Hệ thống kết hợp **CLIP (ViT-B/32)** để trích xuất đặc trưng ảnh và **LSTM + Attention** để sinh caption theo chuỗi.
+
+![Pipeline Image Captioning](docs/ảnh/imagecaptioning.png)
+![CLIP Architecture](docs/ảnh/CLIP.png)
+![Attention Mechanism](docs/ảnh/attention.png)
 
 ---
 
-## ✨ Tính năng nổi bật
-- 🔄 **Pipeline End-to-End:** Toàn bộ quy trình từ tiền xử lý dữ liệu, trích xuất đặc trưng, huấn luyện đến đánh giá được đóng gói trong một Jupyter Notebook duy nhất.
-- ⚡ **CLIP Feature Caching:** Tiền tính toán và lưu đặc trưng ảnh vào RAM, giảm ~70-80% thời gian xử lý so với việc trích xuất lại mỗi epoch.
-- 🎯 **Attention Mechanism:** Cho phép Decoder tập trung động vào các vùng đặc trưng quan trọng của ảnh tại từng bước sinh từ, cải thiện độ chính xác ngữ nghĩa.
-- 🔍 **Beam Search Decoding:** Thay thế Greedy Search bằng tìm kiếm chùm (`beam_size=5`) kết hợp **Length Penalty** & **Repetition Penalty** để hạn chế câu cụt/lặp từ.
-- 🛑 **Early Stopping & Checkpointing:** Tự động dừng training khi validation loss bão hòa (`patience=2`), lưu lại `best_model.pth` và `vocab.pkl` để phục hồi hoặc suy luận sau này.
-- 📊 **Đánh giá Đa chiều:** Tính toán các chỉ số BLEU (1-4) chuẩn công nghiệp và trực quan hóa so sánh Ground Truth vs Prediction.
+## ✨ Tổng quan nhanh
+
+- **Encoder:** CLIP `ViT-B/32`
+- **Decoder:** LSTM nhiều lớp
+- **Cơ chế hỗ trợ:** Attention
+- **Giải mã caption:** Beam Search
+- **Tiền xử lý văn bản:** NLTK
+- **Đánh giá:** BLEU-1 đến BLEU-4
+
+Dự án được triển khai chủ yếu trong notebook `clip_lstm_test.ipynb`, đi kèm báo cáo chi tiết trong `docs/BaoCaoBTLFinal.pdf`.
 
 ---
 
-## 🧠 Kiến trúc & Công nghệ
+## 🔧 Tính năng chính
 
-### 🛠️ Công nghệ cốt lõi
-| Thành phần | Công nghệ / Thư viện | Vai trò |
-|:---|:---|:---|
-| **Vision Encoder** | `OpenAI CLIP (ViT-B/32)` | Trích xuất đặc trưng ảnh đa phương thức, đóng băng trọng số (Transfer Learning) |
-| **Language Decoder** | `PyTorch LSTM` | Sinh chuỗi từ tuần tự, mô hình hóa phụ thuộc ngắn-trung hạn |
-| **Cơ chế tập trung** | `Additive Attention` | Gán trọng số động cho các vùng ảnh tại mỗi bước thời gian |
-| **Tối ưu hóa** | `Adam`, `CrossEntropyLoss` | Huấn luyện ổn định, áp dụng Teacher Forcing & ignore `<PAD>` |
-| **Xử lý ngôn ngữ** | `NLTK`, `Pandas`, `NumPy` | Tokenize, xây dựng Vocabulary, quản lý metadata |
+- Trích xuất đặc trưng ảnh bằng CLIP và tái sử dụng đặc trưng đã cache để tăng tốc huấn luyện.
+- Xây dựng vocabulary với các token đặc biệt: `<PAD>`, `<SOS>`, `<EOS>`, `<UNK>`.
+- Huấn luyện mô hình sinh caption bằng **Cross-Entropy Loss**.
+- Dùng **Attention** để mô hình tập trung vào đặc trưng quan trọng khi sinh từng từ.
+- Dùng **Beam Search** để giảm câu quá ngắn, lặp từ hoặc lựa chọn tham lam.
+- Hỗ trợ **early stopping** và lưu checkpoint.
 
-### 🏗️ Luồng kiến trúc (Architecture Flow)
-Mô hình tuân theo thiết kế **Encoder-Decoder** kinh điển cho tác vụ Vision-Language:
-1. **Encoder (CLIP):** Nhận ảnh đầu vào → Tiền xử lý (Resize, Normalize) → Trích xuất vector đặc trưng cố định (512D).
-2. **Decoder (LSTM + Attention):** Nhận token `<SOS>` → Tại mỗi bước $t$, Attention tính trọng số giữa Hidden State của LSTM và đặc trưng CLIP → LSTM dự đoán xác suất từ tiếp theo.
-3. **Inference:** Sử dụng Beam Search để duyệt cây xác suất, áp dụng penalty → Trả về chuỗi caption tối ưu.
+---
 
-![Sơ đồ quy trình hoạt động của mô hình CLIP kết hợp cơ chế học đa phương thức và ứng dụng cho tác vụ sinh mô tả ảnh](docs/ảnh/imagecaptioning.png)
-![Sơ đồ kiến trúc mô hình CLIP (Contrastive Language–Image Pre-training) với Image Encoder và Text Encoder](docs/ảnh/CLIP.png)
-![Sơ đồ cơ chế Attention trong mô hình Sequence-to-Sequence, minh họa cách Decoder tập trung vào các vùng đặc trưng của Encoder](docs/ảnh/attention.png)
+## 🧠 Kiến trúc mô hình
+
+Luồng xử lý chính:
+
+1. Ảnh đầu vào được resize/normalize bằng `preprocess` của CLIP.
+2. CLIP mã hóa ảnh thành embedding đặc trưng.
+3. Vector ảnh được đưa vào LSTM để khởi tạo trạng thái ẩn.
+4. Decoder sinh từng từ của caption theo từng bước thời gian.
+5. Attention và Beam Search được dùng trong quá trình suy luận để cải thiện chất lượng caption.
 
 ---
 
 ## 📁 Cấu trúc thư mục
+
 ```text
-📦 NLP_Image_Captioning_using_CLIP_and_LSTM/
-├── 📄 clip_lstm_test.ipynb      # 🚀 Entry Point: Chứa toàn bộ pipeline huấn luyện, đánh giá & demo
-├── 📁 docs/                     # 📚 Tài liệu học thuật & Tài nguyên minh họa
-│   ├── 📄 BaoCaoBTLFinal.pdf    # 📘 Báo cáo chi tiết (Lý thuyết, Thực nghiệm, Phân tích lỗi)
-│   └── 📁 ảnh/                  # 🖼️ Sơ đồ kiến trúc, biểu đồ loss & kết quả sinh caption mẫu
-└── 📄 README.md                 # 📖 Tài liệu hướng dẫn sử dụng & Cấu trúc dự án
+NLP_Image_Captioning_using_CLIP_and_LSTM-main/
+├── clip_lstm_test.ipynb
+├── README.md
+└── docs/
+    ├── BaoCaoBTLFinal.pdf
+    └── ảnh/
+        ├── CLIP.png
+        ├── CNN.png
+        ├── RNN.png
+        ├── attention.png
+        ├── beamsearch.png
+        ├── imagecaptioning.png
+        ├── loss_plot.png
+        ├── lstm.png
+        ├── result.png
+        ├── result2.png
+        └── transfer-learning.png
 ```
-> ⚠️ **Lưu ý:** Thư mục `data/` (chứa ảnh Flickr8k & `captions.txt`) không được commit do dung lượng lớn. Vui lòng tải dataset theo hướng dẫn bên dưới.
+
+> Lưu ý: dữ liệu gốc như `dataset/Images/` và `dataset/captions.txt` không nằm trong repo.
 
 ---
 
-## ⚙️ Hướng dẫn Cài đặt & Sử dụng
+## 🗂️ Dữ liệu sử dụng
 
-### 1️⃣ Chuẩn bị môi trường
-Khuyến nghị sử dụng **Python 3.9+** trên **Google Colab** hoặc Jupyter Lab/Notebook.
+Dự án sử dụng bộ dữ liệu **Flickr8k**:
+
+- khoảng **8.000 ảnh**
+- mỗi ảnh có nhiều caption do con người viết
+
+Trong notebook, dữ liệu được đọc từ:
+
+- `dataset/Images/`
+- `dataset/captions.txt`
+
+### Tiền xử lý dữ liệu
+
+- Đọc và gom nhóm caption theo từng ảnh
+- Tokenize caption bằng NLTK
+- Loại từ hiếm theo ngưỡng tần suất
+- Thêm token đặc biệt `<SOS>` và `<EOS>`
+- Padding caption theo batch
+- Chia dữ liệu theo tỉ lệ:
+  - **Train:** 80%
+  - **Validation:** 10%
+  - **Test:** 10%
+
+---
+
+## 🧪 Cấu hình huấn luyện
+
+Các siêu tham số chính được dùng trong notebook:
+
+- `embed_size = 256`
+- `hidden_size = 512`
+- `batch_size = 32`
+- `learning_rate = 3e-4`
+- `num_epochs = 15`
+- `early_stopping_patience = 2`
+- `attention = True`
+- `beam_size = 5`
+- `use_clip_cache = True`
+
+---
+
+## 🚀 Cách chạy
+
+### 1) Cài đặt thư viện
+
 ```bash
-# Cài đặt các thư viện phụ thuộc
 pip install torch torchvision openai-clip pandas numpy matplotlib nltk tqdm pillow
 ```
 
-### 2️⃣ Chuẩn bị dữ liệu
-Tạo thư mục `data/` tại root project với cấu trúc:
+### 2) Chuẩn bị dữ liệu
+
+Tạo thư mục `dataset/` ở thư mục gốc:
+
 ```text
-data/
-├── images/          # Chứa 8,000 ảnh .jpg của tập Flickr8k
-└── captions.txt     # File metadata (Định dạng: <tên_ảnh>#<stt> \t <caption>)
+dataset/
+├── Images/
+└── captions.txt
 ```
-Cập nhật đường dẫn `DATA_DIR`, `IMAGE_DIR`, `CAPTIONS_FILE` trong các cell cấu hình đầu tiên của notebook.
 
-### 3️⃣ Chạy Pipeline
-Mở file `clip_lstm_test.ipynb` bằng Jupyter hoặc VS Code, chạy tuần tự các cell từ trên xuống:
-1. **Tiền xử lý & Caching:** Xây dựng Vocabulary, token hóa caption, tiền trích xuất đặc trưng CLIP.
-2. **Huấn luyện:** Khởi tạo mô hình, chạy training loop (tối đa 15 epochs, `lr=3e-4`, `batch_size=32`).
-3. **Đánh giá & Demo:** Load checkpoint tốt nhất, sinh caption trên tập test bằng Beam Search, tính BLEU và hiển thị trực quan.
+Sau đó kiểm tra lại các đường dẫn trong notebook:
 
----
+```python
+CAPTIONS_FILE = 'dataset/captions.txt'
+IMAGES_FOLDER = 'dataset/Images'
+CHECKPOINT_DIR = 'checkpoints'
+```
 
-## 📊 Kết quả & Đánh giá
+### 3) Chạy notebook
 
-### 📈 Quá trình huấn luyện
-- **Early Stopping** kích hoạt tại **Epoch 11**.
-- Mô hình đạt **Validation Loss thấp nhất: `3.1911`** tại Epoch 9.
-- Đường cong Loss hội tụ ổn định, không xuất hiện hiện tượng Overfitting nghiêm trọng.
+Mở `clip_lstm_test.ipynb` và chạy lần lượt các cell:
 
-![Biểu đồ hàm mất mát (Loss) trong quá trình huấn luyện mô hình, phản ánh xu hướng giảm đều của training và validation loss qua các epoch](docs/ảnh/loss_plot.png)
-
-### 📊 Chỉ số định lượng (BLEU Metrics)
-Đánh giá trên tập Test sử dụng `nltk.corpus_bleu`:
-| Chỉ số | Giá trị | Nhận xét |
-|:---:|:---:|:---|
-| **BLEU-1** | `0.2706` | Bắt đúng từ khóa cơ bản (chủ ngữ, động từ) |
-| **BLEU-2** | `0.0850` | Bắt được một số cụm 2 từ phổ biến |
-| **BLEU-3** | `0.0382` | Giảm mạnh, phản ánh hạn chế về cấu trúc câu |
-| **BLEU-4** | `0.0201` | Thấp, cho thấy khoảng cách lớn về ngữ pháp và ngữ cảnh dài so với Ground Truth |
-
-### 🖼️ Kết quả định tính (Qualitative Demo)
-![Kết quả suy luận mẫu thứ nhất: So sánh ảnh đầu vào, caption thực tế và caption do mô hình sinh ra](docs/ảnh/result.png)
-![Kết quả suy luận mẫu thứ hai: Minh họa thêm các trường hợp dự đoán của mô hình trên tập kiểm thử](docs/ảnh/result2.png)
+1. import thư viện và tải CLIP
+2. load dữ liệu Flickr8k
+3. xây vocabulary
+4. cache CLIP features
+5. huấn luyện mô hình
+6. đánh giá BLEU và sinh caption mẫu
 
 ---
 
-## 🚧 Hạn chế & Hướng phát triển
+## 📊 Kết quả thực nghiệm
 
-### ⚠️ Hạn chế hiện tại
-1. **Bias dữ liệu:** Caption có xu hướng chung chung, lặp lại các mẫu phổ biến trong tập Flickr8k, dễ sai lệch với vật thể/hành động cụ thể.
-2. **Xử lý ngữ cảnh dài:** Kiến trúc LSTM gặp khó khăn trong việc nắm bắt phụ thuộc xa và quan hệ không gian phức tạp giữa nhiều vật thể.
-3. **Chỉ số BLEU-4 thấp:** Phản ánh giới hạn của mô hình trong việc sinh câu dài, tự nhiên và đúng ngữ pháp.
-4. **Thiếu file quản lý môi trường:** Hiện tại chưa có `requirements.txt` hoặc `Dockerfile`, dễ gây xung đột phiên bản khi triển khai trên máy mới.
+Theo báo cáo trong `docs/BaoCaoBTLFinal.pdf`:
 
-### 🚀 Hướng phát triển (Future Work)
-- 🔹 **Nâng cấp Decoder:** Thay thế LSTM bằng **Transformer Decoder** hoặc tích hợp Pre-trained LLM (ví dụ: GPT-2/Phi-3) để cải thiện khả năng sinh ngôn ngữ tự nhiên.
-- 🔹 **Multi-Head Attention:** Chuyển từ Additive Attention sang Self/Multi-Head Attention để mô hình hóa tốt hơn quan hệ không gian giữa các vùng ảnh.
-- 🔹 **Mở rộng Dataset:** Chuyển sang thử nghiệm trên **MS-COCO** hoặc **Conceptual Captions** để tăng độ đa dạng ngữ cảnh.
-- 🔹 **Kỹ thuật Fine-tuning:** Thử nghiệm Unfreeze một phần CLIP Vision Encoder hoặc áp dụng LoRA để thích ứng đặc trưng tốt hơn với tập dữ liệu đích.
+- **Early stopping** kích hoạt ở **epoch 11**
+- **Validation loss tốt nhất:** `3.1911` tại **epoch 9**
+
+### BLEU score
+
+| Chỉ số | Giá trị |
+|---|---:|
+| BLEU-1 | 0.2706 |
+| BLEU-2 | 0.0850 |
+| BLEU-3 | 0.0382 |
+| BLEU-4 | 0.0201 |
+
+![Loss plot](docs/ảnh/loss_plot.png)
+![Result 1](docs/ảnh/result.png)
+![Result 2](docs/ảnh/result2.png)
+
+### Nhận xét
+
+- Mô hình học được xu hướng giảm loss khá ổn định.
+- Caption sinh ra vẫn còn thiên về các mẫu phổ biến.
+- BLEU-4 còn thấp, cho thấy mô hình chưa nắm bắt tốt cấu trúc ngôn ngữ dài và ngữ cảnh phức tạp.
 
 ---
 
-## 👥 Nhóm tác giả & Báo cáo
+## ⚠️ Hạn chế
+
+- LSTM còn hạn chế khi học phụ thuộc dài.
+- Dữ liệu Flickr8k tương đối nhỏ cho bài toán sinh caption.
+- Một số caption sinh ra bị lặp hoặc mô tả chưa sát ảnh.
+- Repo hiện chưa có `requirements.txt` hoặc `Dockerfile`.
+
+---
+
+## 🔮 Hướng phát triển
+
+- Thử **Transformer Decoder** thay cho LSTM.
+- Tăng cường **Multi-Head Attention**.
+- Mở rộng sang bộ dữ liệu lớn hơn như **MS COCO** hoặc **Conceptual Captions**.
+- Thử fine-tune thêm một phần encoder CLIP hoặc dùng LoRA/adapters.
+
+---
+
+## 👥 Thành viên nhóm
+
 Đồ án được thực hiện bởi sinh viên **Lớp 67CS1**, Khoa Công nghệ Thông tin, Trường Đại học Xây dựng Hà Nội.
 
 | Thành viên | MSSV |
-|:---|:---|
+|---|---:|
 | Nguyễn Hải Cường | 0174067 |
 | Lã Minh Khánh | 4004267 |
 | Trịnh Quỳnh Anh | 0279367 |
 | Phạm Hồng Thái | 0127067 |
 
-👨‍🏫 **Giảng viên hướng dẫn:** ThS. Nguyễn Đình Quý  
-📅 **Hoàn thành:** 14/05/2025  
-📄 **Báo cáo chi tiết:** Xem tại [`docs/BaoCaoBTLFinal.pdf`](docs/BaoCaoBTLFinal.pdf)
+**Giảng viên hướng dẫn:** ThS. Nguyễn Đình Quý  
+**Ngày hoàn thành:** 14/05/2025
 
-> 📜 *Tài liệu và mã nguồn được chia sẻ phục vụ mục đích học thuật & nghiên cứu. Vui lòng ghi nguồn khi tham khảo hoặc phát triển tiếp.*
+---
+
+## 📄 Tài liệu tham khảo trong repo
+
+- `docs/BaoCaoBTLFinal.pdf`
+- `clip_lstm_test.ipynb`
+- các hình minh họa trong `docs/ảnh/`
+
+---
+
+## 📌 Ghi chú
+
+Dự án được chia sẻ phục vụ mục đích học tập và nghiên cứu. Khi tham khảo hoặc phát triển tiếp, vui lòng ghi nguồn phù hợp.
