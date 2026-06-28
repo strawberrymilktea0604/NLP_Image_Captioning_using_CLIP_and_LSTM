@@ -1,195 +1,180 @@
-# NLP Image Captioning using CLIP and LSTM
+# Ứng dụng Mô hình CLIP và LSTM trong Bài toán Tạo Chú thích Ảnh (Image Captioning)
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c)
-![CLIP](https://img.shields.io/badge/CLIP-ViT--B%2F32-7b61ff)
-![LSTM](https://img.shields.io/badge/LSTM-Attention-00a67d)
-![NLP](https://img.shields.io/badge/NLP-Image%20Captioning-ff8c42)
-
-> Đồ án nhỏ của nhóm mình về bài toán **tạo chú thích ảnh tự động**.  
-> Mục tiêu là lấy một bức ảnh đầu vào, trích xuất đặc trưng bằng **CLIP**, rồi để **LSTM + Attention** sinh ra một câu mô tả tương đối tự nhiên.
+Đây là báo cáo bài tập lớn môn **Xử lý ngôn ngữ tự nhiên (NLP)** của nhóm sinh viên chúng em tại **Trường Đại học Xây dựng Hà Nội (HUCE)**. Đề tài tập trung vào việc nghiên cứu và thử nghiệm kết hợp mô hình học sâu đa phương thức (CLIP) để trích xuất đặc trưng hình ảnh và mạng LSTM có tích hợp cơ chế Attention để sinh câu chú thích tương ứng.
 
 <p align="center">
-  <img src="docs/ảnh/imagecaptioning.png" alt="CLIP overview" width="900">
-</p>
-
-## Tóm tắt ngắn
-
-Project này là một thử nghiệm kết hợp giữa **Computer Vision** và **NLP**.  
-Phần encoder dùng **CLIP (ViT-B/32)** để lấy đặc trưng hình ảnh, còn phần decoder dùng **LSTM** để sinh caption từng từ một. Trong quá trình chạy thử, nhóm có dùng thêm **Attention** và **Beam Search** để caption đỡ bị quá ngắn hoặc quá “cứng”.
-
-Nói thật là kết quả chưa phải kiểu “rất xịn”, nhưng mô hình vẫn học được mối liên hệ cơ bản giữa ảnh và câu mô tả. Phần này nhóm mình giữ lại đầy đủ trong báo cáo để nhìn ra cả điểm mạnh lẫn điểm chưa ổn của mô hình.
-
-## Người thực hiện
-
-- **Nguyễn Hải Cường** – 0174067-67CS1
-- **Lã Minh Khánh** – 4004267-67CS1
-- **Trịnh Quỳnh Anh** – 0279367-67CS1
-- **Phạm Hồng Thái** – 0127067-67CS1
-
-**Giảng viên hướng dẫn:** ThS. **Nguyễn Đình Quý**  
-**Môn học:** Xử lý ngôn ngữ tự nhiên
-
----
-
-## 1. Ý tưởng chính
-
-Bài toán image captioning có thể hiểu đơn giản là:
-
-- Input: một bức ảnh
-- Output: một câu mô tả nội dung ảnh
-
-Trong đồ án này, nhóm mình chọn hướng đi khá phổ biến:
-
-1. Dùng **CLIP** để lấy vector đặc trưng của ảnh.
-2. Đưa vector đó vào **LSTM** để sinh caption.
-3. Dùng **Attention** để mô hình chú ý tốt hơn tới các phần quan trọng của ảnh.
-4. Dùng **Beam Search** khi suy luận để câu sinh ra đỡ bị “lụm cụm”.
-
-<p align="center">
-  <img src="docs/ảnh/CLIP.png" alt="CLIP architecture" width="900">
-</p>
-
-<p align="center">
-  <img src="docs/ảnh/attention.png" alt="Attention decoder" width="760">
+  <img src="docs/images/huce_logo.png" alt="HUCE Logo" width="150">
 </p>
 
 ---
 
-## 2. Mô hình và cách làm
+## 👥 Thông tin Nhóm thực hiện & Giảng viên hướng dẫn
 
-### Encoder
-- Dùng **CLIP ViT-B/32**
-- Lấy embedding ảnh làm đầu vào cho decoder
-- Có cache feature để tăng tốc lúc train
+* **Giảng viên hướng dẫn:** ThS. Nguyễn Đình Quý (Bộ môn Khoa học máy tính, Khoa Công nghệ thông tin)
+* **Sinh viên thực hiện (Nhóm lớp 67CS1):**
+  1. Nguyễn Hải Cường - MSSV: 0174067
+  2. Lã Minh Khánh - MSSV: 4004267
+  3. Trịnh Quỳnh Anh - MSSV: 0279367
+  4. Phạm Hồng Thái - MSSV: 0127067
 
-### Decoder
-- **Embedding layer**
-- **LSTM**
-- **Attention**
-- **Linear layer** để dự đoán token tiếp theo
+---
 
-### Sinh caption
-- Khi train: dùng caption thật để dạy mô hình dự đoán từ kế tiếp
-- Khi test: mô hình tự sinh từng từ cho đến khi gặp `<EOS>`
-- Có dùng **Beam Search** để chọn caption hợp lý hơn thay vì greedy decoding
+## 📝 Tóm tắt đề tài (Abstract)
+Đề tài của nhóm em giải quyết bài toán **Tạo chú thích hình ảnh tự động (Image Captioning)** - một bài toán giao thoa giữa Thị giác máy tính (Computer Vision) và Xử lý ngôn ngữ tự nhiên (NLP). Nhóm em sử dụng phương pháp Học chuyển giao (Transfer Learning), sử dụng mô hình pre-trained **CLIP (ViT-B/32)** làm Encoder để trích xuất đặc trưng ngữ nghĩa chất lượng cao của ảnh, sau đó đưa qua mạng **LSTM kết hợp cơ chế Attention** làm Decoder để sinh ra mô tả ngôn ngữ tự nhiên phù hợp. Dự án được huấn luyện và đánh giá trên bộ dữ liệu chuẩn **Flickr8k**.
+
+---
+
+## 📸 Demo kết quả thực tế
+Dưới đây là một số ví dụ kết quả mô tả ảnh do mô hình của nhóm em sinh ra (Prediction - P) so sánh với mô tả gốc do con người viết (Ground Truth - GT):
 
 <p align="center">
-  <img src="docs/ảnh/beamsearch.png" alt="Beam search" width="760">
+  <img src="docs/images/sample_predictions.png" alt="Kết quả tạo chú thích ảnh của mô hình" width="80%">
+</p>
+
+> [!WARNING]
+> **Nhận xét khách quan:** Mô hình của nhóm em hiện tại vẫn gặp nhiều hạn chế khi chạy thực tế. Trong một số trường hợp, mô hình bị xu hướng hội tụ về các câu mô tả quá phổ biến trong tập train (ví dụ: hình người đàn ông cầm cờ bị dịch nhầm thành *"a dog is running through a field"*, hay ảnh hai người phụ nữ đứng trước cửa hàng bị gán nhãn *"a black dog is running through the grass with a ball in its mouth"*). Nhóm em đã phân tích chi tiết nguyên nhân này ở phần đánh giá bên dưới.
+
+---
+
+## 📐 Phương pháp & Kiến trúc Hệ thống
+
+### 1. Luồng xử lý tổng quan (System Flowchart)
+Quy trình từ lúc nhập ảnh đầu vào cho tới khi sinh ra câu chú thích hoàn chỉnh được thực hiện qua các bước dưới đây:
+
+<p align="center">
+  <img src="docs/images/prediction_flowchart.png" alt="Quy trình xử lý của hệ thống" width="80%">
+</p>
+
+1. **Tiền xử lý:** Ảnh được đưa về kích thước chuẩn và chuẩn hóa theo bộ tiền xử lý của CLIP. Văn bản được tách từ (tokenize) bằng thư viện NLTK, chuyển về chữ thường, lọc các từ ít xuất hiện (tần suất < 5) và thêm các token đặc biệt (`<SOS>`, `<EOS>`, `<PAD>`, `<UNK>`).
+2. **Trích xuất đặc trưng (Encoder):** Ảnh sau tiền xử lý được đưa qua mô hình CLIP để trích xuất vector đặc trưng ngữ nghĩa trong không gian nhúng đồng nhất (multi-modal embedding space).
+3. **Sinh câu chú thích (Decoder):** Vector đặc trưng ảnh kết hợp với trạng thái ẩn được đưa vào mạng LSTM có tích hợp cơ chế Attention để sinh ra từng từ kế tiếp.
+4. **Tìm kiếm chuỗi tối ưu:** Nhóm em áp dụng thuật toán **Beam Search** để chọn ra câu mô tả có xác suất cao nhất thay vì chọn tham lam (Greedy Search).
+
+---
+
+### 2. Các kiến trúc thành phần
+
+#### Mô hình CLIP (Encoder)
+CLIP (Contrastive Language-Image Pre-training) của OpenAI giúp ánh xạ cả ảnh và văn bản vào chung một không gian vector. Nhóm em sử dụng phiên bản backbone **ViT-B/32** để trích xuất các đặc trưng ngữ nghĩa toàn cục của bức ảnh.
+
+<p align="center">
+  <img src="docs/images/clip_architecture.png" alt="Mô hình CLIP" width="60%">
+</p>
+
+#### Mạng LSTM kết hợp Attention (Decoder)
+Thay vì chỉ truyền thông tin ảnh vào trạng thái khởi tạo của LSTM, cơ chế Attention cho phép mạng giải mã tập trung vào các vùng đặc trưng quan trọng của ảnh tương ứng với từng từ được sinh ra tại mỗi bước thời gian.
+
+| Sơ đồ cơ chế Attention | Kiến trúc LSTM |
+| :---: | :---: |
+| <img src="docs/images/attention_mechanism.png" alt="Cơ chế Attention" width="100%"> | <img src="docs/images/lstm_architecture.png" alt="Kiến trúc LSTM" width="100%"> |
+
+#### Thuật toán Beam Search
+Để tăng chất lượng câu sinh ra, thuật toán Beam Search lưu lại top $k$ (trong bài này nhóm chọn $beam\_size = 5$) tiền tố câu có xác suất tích lũy lớn nhất tại mỗi bước sinh từ, giúp tránh các lựa chọn tối ưu cục bộ.
+
+<p align="center">
+  <img src="docs/images/beam_search.png" alt="Thuật toán Beam Search" width="60%">
 </p>
 
 ---
 
-## 3. Kết quả thực nghiệm
+## 📊 Kết quả Thực nghiệm
 
-### Tham số chính
-- `embed_size = 256`
-- `hidden_size = 512`
-- `batch_size = 32`
-- `learning_rate = 3e-4`
-- `num_epochs = 15`
-- `attention = True`
-- `beam_size = 5`
-- `early_stopping_patience = 2`
+### 1. Quá trình huấn luyện (Training Curve)
+Nhóm em cấu hình huấn luyện với các siêu tham số chính như sau:
+* Kích thước từ nhúng (`embed_size`): 256
+* Số chiều ẩn (`hidden_size`): 512
+* Kích thước batch (`batch_size`): 32
+* Tốc độ học (`learning_rate`): 3e-4 (sử dụng thuật toán tối ưu Adam)
+* Số epoch tối đa: 15 epoch (có sử dụng `early_stopping` với patience = 2)
 
-### Kết quả huấn luyện
-Theo báo cáo trong thư mục `docs`, mô hình dừng sớm ở **epoch 11** vì validation loss không còn cải thiện trong 2 epoch liên tiếp.  
-Best validation loss đạt khoảng **3.1911** ở **epoch 9**.
+Quá trình training thực tế dừng sớm ở epoch thứ 11 do validation loss không giảm thêm trong 2 epoch liên tiếp. Mô hình tốt nhất được lưu lại ở epoch thứ 9 với validation loss đạt **3.1911**.
 
-<p align="center">
-  <img src="docs/ảnh/loss_plot.png" alt="Training loss" width="760">
-</p>
-
-### BLEU score
-| Metric | Value |
-|---|---:|
-| BLEU-1 | 0.2706 |
-| BLEU-2 | 0.0850 |
-| BLEU-3 | 0.0382 |
-| BLEU-4 | 0.0201 |
-
-Nhìn chung, caption sinh ra vẫn còn khá chung chung và đôi lúc bị lệch nội dung ảnh. Nhưng với một đồ án học phần, phần này giúp nhóm mình thấy khá rõ vấn đề của mô hình và chỗ cần cải thiện nếu làm tiếp.
-
-### Một vài kết quả sinh caption
-<p align="center">
-  <img src="docs/ảnh/result2.png" alt="Generated captions" width="900">
-</p>
+| Đồ thị Loss Curve | Nhật ký console huấn luyện |
+| :---: | :---: |
+| <img src="docs/images/loss_curve.png" alt="Biến thiên Loss" width="100%"> | <img src="docs/images/training_results.png" alt="Kết quả huấn luyện trên console" width="100%"> |
 
 ---
 
-## 4. Cấu trúc thư mục
+### 2. Đánh giá định lượng trên tập Test
+Nhóm em sử dụng thang đo **BLEU (Bilingual Evaluation Understudy)** từ 1-gram đến 4-gram để đánh giá độ tương đồng giữa câu chú thích sinh ra bởi mô hình và câu chú thích gốc do con người viết:
 
-```text
-NLP_Image_Captioning_using_CLIP_and_LSTM-main/
-├── clip_lstm_test.ipynb
-├── docs/
-│   ├── BaoCaoBTLFinal.pdf
-│   └── ảnh/
-│       ├── CLIP.png
-│       ├── attention.png
-│       ├── beamsearch.png
-│       ├── loss_plot.png
-│       └── result2.png
-└── README.md
-```
-
-> Trong notebook, phần đọc dữ liệu đang trỏ tới `dataset/captions.txt` và `dataset/Images/`.  
-> Nghĩa là nếu chạy lại từ đầu thì cần chuẩn bị đúng cấu trúc dữ liệu đó trước.
+| Chỉ số | Giá trị |
+| :---: | :---: |
+| **BLEU-1** | 0.2706 |
+| **BLEU-2** | 0.0850 |
+| **BLEU-3** | 0.0382 |
+| **BLEU-4** | 0.0201 |
 
 ---
 
-## 5. Cách chạy lại
+### 3. Nhận xét & Hạn chế của bài tập lớn
+Từ kết quả thực nghiệm trên, nhóm em tự rút ra một số nhận xét như sau:
+1. **Lỗi lặp từ và câu mô tả chung chung:** Do bộ dữ liệu Flickr8k có quy mô nhỏ (8,000 ảnh) và chứa nhiều caption mô tả chó chạy trên cỏ, mô hình của nhóm em bị thiên lệch dữ liệu nghiêm trọng. Khi gặp các bức ảnh lạ, mô hình có xu hướng sinh ra các câu an toàn như *"a dog is running through the grass"*.
+2. **Độ chính xác BLEU còn thấp:** BLEU-4 chỉ đạt 0.0201 cho thấy mô hình LSTM đơn giản chưa thể học tốt mối liên kết ngữ nghĩa phức tạp giữa đặc trưng ảnh đa chiều của CLIP và các chuỗi từ dài trong tiếng Anh.
+3. **Hướng phát triển:** Trong tương lai, nếu có thêm tài nguyên phần cứng (GPU mạnh hơn) và thời gian, nhóm em dự kiến sẽ thay thế giải mã LSTM bằng kiến trúc Transformer Decoder kết hợp với các mô hình ngôn ngữ lớn được tiền huấn luyện (như GPT) để cải thiện độ tự nhiên cũng như độ chính xác của câu mô tả.
 
-### Cài thư viện
-Dự án dùng notebook nên cách đơn giản nhất là tạo môi trường Python rồi cài các gói cần thiết:
+---
 
+## 🛠️ Hướng dẫn cài đặt & Chạy chương trình
+
+### 1. Yêu cầu hệ thống
+Dự án được viết hoàn toàn bằng Python. Các thư viện chính cần cài đặt gồm:
+* `torch` và `torchvision` (khuyến khích dùng bản hỗ trợ CUDA để chạy nhanh hơn)
+* `nltk` (xử lý tách từ ngữ)
+* `pillow` (đọc và xử lý ảnh)
+* `pandas`, `numpy`, `matplotlib`
+* Thư viện CLIP của OpenAI
+
+Để cài đặt CLIP, bạn chạy lệnh:
 ```bash
-pip install torch torchvision torchaudio
-pip install numpy pandas matplotlib pillow tqdm nltk
 pip install git+https://github.com/openai/CLIP.git
 ```
 
-### Tải dữ liệu NLTK
-```python
-import nltk
-nltk.download("punkt")
-nltk.download("punkt_tab")
+### 2. Chuẩn bị dữ liệu
+Tải bộ dữ liệu **Flickr8k** và giải nén vào thư mục dự án theo cấu trúc sau:
+```text
+dataset/
+├── Images/          # Chứa 8,000 file ảnh .jpg
+└── captions.txt     # File văn bản chứa tên ảnh và chú thích tương ứng
 ```
 
-### Chạy notebook
-1. Đưa dữ liệu vào đúng thư mục `dataset/`
-2. Mở `clip_lstm_test.ipynb`
-3. Chạy lần lượt các cell từ trên xuống
-4. Quan sát loss, caption sinh ra và phần đánh giá BLEU
+### 3. Huấn luyện và Đánh giá
+Mở file notebook Jupyter [clip_lstm_test.ipynb](file:///c:/Users/minhk/Downloads/NLP_Image_Captioning_using_CLIP_and_LSTM/clip_lstm_test.ipynb) và chạy tuần tự các cell code:
+* Các đặc trưng ảnh trích xuất từ CLIP sẽ được pre-compute và lưu vào bộ nhớ cache (`use_clip_cache=True`) giúp tăng tốc độ train đáng kể.
+* Quá trình huấn luyện sẽ tự động kích hoạt cơ chế early stopping và lưu lại trọng số mô hình tốt nhất.
+* Cuối notebook là các hàm evaluate và generate chú thích cho ảnh bất kỳ.
 
 ---
 
-## 6. Tech stack
+## 📂 Cấu trúc thư mục dự án
 
-- Python
-- PyTorch
-- OpenAI CLIP
-- LSTM
-- Attention
-- Beam Search
-- NLTK
-- NumPy
-- Pandas
-- Matplotlib
-- Pillow
-- tqdm
-- Jupyter Notebook
+```text
+NLP_Image_Captioning_using_CLIP_and_LSTM/
+├── docs/
+│   ├── BaoCaoBTLFinal.pdf          # Báo cáo PDF hoàn chỉnh của bài tập lớn
+│   └── images/                     # Các hình ảnh sơ đồ kiến trúc trích xuất từ PDF
+│       ├── attention_mechanism.png
+│       ├── beam_search.png
+│       ├── clip_architecture.png
+│       ├── cnn_architecture.png
+│       ├── huce_logo.png
+│       ├── loss_curve.png
+│       ├── lstm_architecture.png
+│       ├── prediction_flowchart.png
+│       ├── rnn_architecture.png
+│       ├── sample_predictions.png
+│       ├── training_results.png
+│       └── transfer_learning.png
+├── README.md                       # Hướng dẫn này
+└── clip_lstm_test.ipynb            # Notebook huấn luyện và kiểm thử mô hình
+```
 
 ---
 
-## 7. Tài liệu tham khảo
+## 🤝 Lời cảm ơn & Tài liệu tham khảo
+Nhóm sinh viên chúng em xin gửi lời cảm ơn chân thành tới **Thầy Nguyễn Đình Quý** đã tận tình hướng dẫn, chỉ bảo và truyền đạt những kiến thức chuyên ngành quý báu trong suốt quá trình nhóm em thực hiện bài tập lớn môn học này.
 
-- Báo cáo PDF: `docs/BaoCaoBTLFinal.pdf`
-- Hình minh họa CLIP, Attention, Beam Search và kết quả sinh caption: `docs/ảnh/`
-
----
-
-## 8. Lời cảm ơn
-
-Nhóm mình xin gửi lời cảm ơn đến **ThS. Nguyễn Đình Quý** đã hướng dẫn môn học và góp ý trong quá trình làm đề tài.  
-Cảm ơn các thành viên trong nhóm đã cùng thử nghiệm, chỉnh sửa notebook và hoàn thiện báo cáo.
+**Tài liệu tham khảo chính:**
+1. Radford, A., et al. (OpenAI). *Learning Transferable Visual Models From Natural Language Supervision* (CLIP).
+2. Vinyals, O., et al. *Show and Tell: A Neural Image Caption Generator*.
+3. Xu, K., et al. *Show, Attend and Tell: Neural Image Caption Generation with Visual Attention*.
