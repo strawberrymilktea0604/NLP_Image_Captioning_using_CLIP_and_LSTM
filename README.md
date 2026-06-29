@@ -4,9 +4,9 @@
   <img src="https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?logo=pytorch&logoColor=white" alt="PyTorch">
   <img src="https://img.shields.io/badge/CLIP-OpenAI-black?logo=openai&logoColor=white" alt="CLIP">
-  <img src="https://img.shields.io/badge/NLTK-NLP-green" alt="NLTK">
-  <img src="https://img.shields.io/badge/Build-Passing-brightgreen?style=flat-square" alt="Build Status">
-  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
+  <img src="https://img.shields.io/badge/NLTK-NLP-green?logo=python&logoColor=white" alt="NLTK">
+  <img src="https://img.shields.io/badge/Build-Passing-brightgreen?style=flat-square&logo=githubactions&logoColor=white" alt="Build Status">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg?logo=opensourceinitiative&logoColor=white" alt="License">
 </p>
 
 Đây là báo cáo bài tập lớn môn **Xử lý ngôn ngữ tự nhiên (NLP)** của nhóm sinh viên chúng em tại **Trường Đại học Xây dựng Hà Nội (HUCE)**. Đề tài tập trung vào việc nghiên cứu và thử nghiệm kết hợp mô hình học sâu đa phương thức (CLIP) để trích xuất đặc trưng hình ảnh và mạng LSTM có tích hợp cơ chế Attention để sinh câu chú thích tương ứng.
